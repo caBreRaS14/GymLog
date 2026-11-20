@@ -2,6 +2,8 @@ package co.fexe.gymlog.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -103,7 +105,10 @@ fun FormRegistro(r: Registro?, error: String?, vm: RegistroViewModel, onCerrar: 
         onDismissRequest = onCerrar,
         title = { Text(if (r == null) "Nuevo ejercicio" else "Editar ejercicio") },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Column(
+                Modifier.verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
                 OutlinedTextField(ej, { ej = it }, label = { Text("Ejercicio (ej. Press banca)") }, singleLine = true)
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     GRUPOS.chunked(3).forEach { fila ->
