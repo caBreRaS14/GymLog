@@ -18,8 +18,11 @@ import co.fexe.gymlog.data.Registro
 fun HistorialScreen(s: UiState, onEditar: (Registro) -> Unit, onBorrar: (Registro) -> Unit) {
     var busqueda by rememberSaveable { mutableStateOf("") }
     var grupo by rememberSaveable { mutableStateOf<String?>(null) }
-    val lista = s.registros.filter {
-        (grupo == null || it.grupo == grupo) && it.ejercicio.contains(busqueda.trim(), ignoreCase = true)
+    // El filtro solo se recalcula si cambian los datos, la búsqueda o el grupo.
+    val lista = remember(s.registros, busqueda, grupo) {
+        s.registros.filter {
+            (grupo == null || it.grupo == grupo) && it.ejercicio.contains(busqueda.trim(), ignoreCase = true)
+        }
     }
     LazyColumn(Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         item { Cabecera("Historial", "${s.registros.size} registros en total") }
@@ -54,7 +57,7 @@ fun HistorialScreen(s: UiState, onEditar: (Registro) -> Unit, onBorrar: (Registr
                 if (s.registros.isEmpty()) "Toca «Registrar» para empezar." else "Prueba con otro nombre o grupo."
             )
         }
-        items(lista, key = { it.id }) { r ->
+        items(lista, key = { it.id }, contentType = { "registro" }) { r ->
             TarjetaRegistro(r, onEditar = { onEditar(r) }, onBorrar = { onBorrar(r) })
         }
         item { Spacer(Modifier.height(96.dp)) }

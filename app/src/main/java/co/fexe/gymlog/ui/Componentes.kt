@@ -14,6 +14,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -24,8 +26,11 @@ import java.util.Locale
 
 private val loc = Locale("es", "CO")
 fun kg(v: Double): String = String.format(loc, "%,.1f", v).removeSuffix(",0") + " kg"
-fun fechaCorta(ms: Long): String = SimpleDateFormat("dd MMM", loc).format(Date(ms))
-fun dia(ms: Long): String = SimpleDateFormat("dd MMM · HH:mm", loc).format(Date(ms))
+// Los formateadores son costosos de crear: se crean una sola vez y se reutilizan (solo se usan en el hilo de la UI).
+private val formatoCorto = SimpleDateFormat("dd MMM", loc)
+private val formatoDia = SimpleDateFormat("dd MMM · HH:mm", loc)
+fun fechaCorta(ms: Long): String = formatoCorto.format(Date(ms))
+fun dia(ms: Long): String = formatoDia.format(Date(ms))
 
 @Composable
 fun Cabecera(titulo: String, sub: String? = null) {
@@ -42,25 +47,28 @@ fun Etiqueta(texto: String, modifier: Modifier = Modifier) =
 
 @Composable
 fun TarjetaRegistro(r: Registro, onEditar: () -> Unit, onBorrar: () -> Unit) {
+    // Se calculan una sola vez por registro, no en cada recomposición.
+    val color = remember(r.grupo) { colorGrupo(r.grupo) }
+    val subtitulo = remember(r.grupo, r.fecha) { "${r.grupo} · ${dia(r.fecha)}" }
+    val textoPeso = remember(r.pesoKg) { if (r.pesoKg == 0.0) "Peso corporal" else kg(r.pesoKg) }
+    val textoSeries = remember(r.series, r.repeticiones) { "${r.series} × ${r.repeticiones}" }
     Card(
         shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors(containerColor = Superficie),
         modifier = Modifier.fillMaxWidth()
     ) {
-        Row(Modifier.height(IntrinsicSize.Min)) {
-            Box(Modifier.width(6.dp).fillMaxHeight().background(colorGrupo(r.grupo)))
-            Column(Modifier.weight(1f).padding(start = 14.dp, top = 12.dp, bottom = 12.dp)) {
+        // La franja de color se dibuja detrás (sin IntrinsicSize, que obliga a medir dos veces).
+        Row(Modifier.drawBehind { drawRect(color, size = Size(6.dp.toPx(), size.height)) }) {
+            Column(Modifier.weight(1f).padding(start = 20.dp, top = 12.dp, bottom = 12.dp)) {
                 Text(r.ejercicio, style = MaterialTheme.typography.titleMedium)
-                Text("${r.grupo} · ${dia(r.fecha)}", style = MaterialTheme.typography.bodyMedium, color = TextoSuave)
+                Text(subtitulo, style = MaterialTheme.typography.bodyMedium, color = TextoSuave)
                 Spacer(Modifier.height(8.dp))
                 Box(Modifier.clip(RoundedCornerShape(8.dp)).background(SuperficieAlta).padding(horizontal = 10.dp, vertical = 4.dp)) {
-                    Text("${r.series} × ${r.repeticiones}", fontWeight = FontWeight.Bold)
+                    Text(textoSeries, fontWeight = FontWeight.Bold)
                 }
             }
             Column(horizontalAlignment = Alignment.End, modifier = Modifier.padding(top = 10.dp, end = 4.dp, bottom = 4.dp)) {
-                Text(if (r.pesoKg == 0.0) "Peso corporal" else kg(r.pesoKg),
-                    Modifier.padding(end = 10.dp), style = MaterialTheme.typography.titleMedium,
-                    color = colorGrupo(r.grupo))
+                Text(textoPeso, Modifier.padding(end = 10.dp), style = MaterialTheme.typography.titleMedium, color = color)
                 Row {
                     IconButton(onClick = onEditar) { Icon(Icons.Default.Edit, "Editar ${r.ejercicio}", tint = TextoSuave) }
                     IconButton(onClick = onBorrar) { Icon(Icons.Default.Delete, "Eliminar ${r.ejercicio}", tint = TextoSuave) }
