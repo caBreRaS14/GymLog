@@ -12,3 +12,5 @@ captures/
 *.iml
 # Entrega (ficha y capturas se entregan aparte)
 entrega/
+# Excepcion: el APK de la entrega se versiona
+!releases/*.apk

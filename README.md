@@ -10,6 +10,12 @@ ver la carga semanal, la racha, metas y la evolucion de cada ejercicio. Funciona
 
 En el primer arranque se cargan 213 registros de ejemplo (8 semanas de rutina Push/Pull/Legs).
 
+## Instalar sin Android Studio (APK)
+El APK de la version 1.0 esta en `releases/GymLog-v1.0-debug.apk` (compilacion de depuracion, Android 7.0 o superior).
+1. Copiarlo al celular (o descargarlo desde GitHub).
+2. Abrirlo y permitir la instalacion desde esa fuente cuando Android lo pida.
+3. Tambien por USB con depuracion activa: `adb install -r releases/GymLog-v1.0-debug.apk`
+
 ## Estructura
 - data/: entidad Registro, RegistroDao, AppDb (Room), RegistroRepository
 - ui/: RegistroViewModel, pantallas (Inicio, Historial, Progreso/Detalle, Descanso), componentes y tema
